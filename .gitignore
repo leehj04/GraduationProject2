@@ -1,0 +1,29 @@
+# 패키지 의존성
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# 환경변수 (API 키 등 민감한 정보)
+.env
+backend/.env
+frontend/.env
+
+# 데이터베이스
+*.db
+*.sqlite
+
+# macOS 시스템 파일
+.DS_Store
+
+# 빌드 결과물
+dist/
+build/
+.cache/
+
+# 로그
+*.log
+npm-debug.log*
+
+# puppeteer 캐시
+.local-chromium/
+chrome/

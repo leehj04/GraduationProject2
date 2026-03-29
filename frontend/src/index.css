@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  body {
+    @apply bg-[#0a0e1a] text-white;
+    font-family: 'Inter', system-ui, sans-serif;
+    /* overflow은 각 페이지에서 개별 설정 */
+  }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-white/20 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-white/40; }
+}
+
+@layer components {
+  .sidebar-panel {
+    @apply absolute top-0 right-0 h-full w-[380px] bg-[#111827]/95
+           backdrop-blur-md border-l border-white/10 flex flex-col
+           overflow-hidden z-10;
+  }
+  .btn-primary {
+    @apply bg-[#f5c842] hover:bg-[#e6b800] text-[#0a0e1a] font-semibold
+           px-5 py-2.5 rounded-lg transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-ghost {
+    @apply text-white/70 hover:text-white hover:bg-white/10
+           px-4 py-2 rounded-lg transition-all duration-200;
+  }
+  .input-field {
+    @apply w-full bg-white/5 border border-white/15 rounded-lg
+           px-4 py-3 text-white placeholder-white/40
+           focus:outline-none focus:border-[#f5c842]/60 focus:ring-1
+           focus:ring-[#f5c842]/30 transition-all duration-200;
+  }
+  .tab-btn {
+    @apply flex-1 py-2.5 text-sm font-medium transition-all duration-200
+           border-b-2;
+  }
+  .tab-btn.active {
+    @apply text-[#f5c842] border-[#f5c842];
+  }
+  .tab-btn:not(.active) {
+    @apply text-white/50 border-transparent hover:text-white/80;
+  }
+  .card-hover {
+    @apply transition-all duration-200 hover:bg-white/10 cursor-pointer;
+  }
+}
+
+/* Google Maps custom styles */
+.gm-style .gm-style-iw-c {
+  background: #111827 !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  border-radius: 12px !important;
+  padding: 0 !important;
+}
+.gm-style .gm-style-iw-d {
+  overflow: auto !important;
+  max-height: none !important;
+}
+.gm-style .gm-style-iw-t::after {
+  background: #111827 !important;
+}
+.gm-ui-hover-effect { display: none !important; }
+
+/* Custom cluster marker */
+.cluster-marker {
+  background: #f5c842;
+  color: #0a0e1a;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.25s ease-out; }
+
+/* Slide-in from right */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.slide-in { animation: slideInRight 0.25s ease-out; }
