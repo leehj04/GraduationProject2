@@ -9,13 +9,15 @@ import api from '../api';
 import FavoritesTab from './FavoritesTab';
 import RecommendTab from './RecommendTab';
 
-const FALLBACK_PHOTOS = {
-  'yunchan-lim':  'https://upload.wikimedia.org/wikipedia/commons/8/8e/Yunchan_Lim_at_the_2022_Van_Cliburn_Competition.jpg',
-  'trifonov':     'https://upload.wikimedia.org/wikipedia/commons/c/c3/Daniil_Trifonov_2019.jpg',
-  'seongjin-cho': 'https://upload.wikimedia.org/wikipedia/commons/3/32/Seong-Jin_Cho_2015.jpg',
-  'yuja-wang':    'https://upload.wikimedia.org/wikipedia/commons/2/2c/Yuja_Wang_2019.jpg',
-  'lang-lang':    'https://upload.wikimedia.org/wikipedia/commons/1/1e/Lang_Lang_Cannes.jpg',
-  'hilary-hahn':  'https://upload.wikimedia.org/wikipedia/commons/6/63/Hilary_Hahn_Recital.jpg',
+// 악기별 Unsplash 무료 이미지 (저작권 없음 - Unsplash License)
+// 피아니스트: 피아노 사진, 바이올리니스트: 바이올린 사진
+const INSTRUMENT_PHOTOS = {
+  'yunchan-lim':  'https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=600&q=80', // 피아노
+  'trifonov':     'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=600&q=80', // 피아노 건반
+  'seongjin-cho': 'https://images.unsplash.com/photo-1552422535-c45813c61732?w=600&q=80', // 그랜드 피아노
+  'yuja-wang':    'https://images.unsplash.com/photo-1619961602105-16fa2a5465c7?w=600&q=80', // 피아노 연주
+  'lang-lang':    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=600&q=80', // 피아노 클로즈업
+  'hilary-hahn':  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80', // 바이올린
 };
 
 const MAIN_TABS = [
@@ -83,9 +85,11 @@ export default function MusicianSelect() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#f5c842]/10 border border-[#f5c842]/20 flex items-center justify-center">
-              <Music className="w-5 h-5 text-[#f5c842]" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="ClassicTour"
+              className="w-10 h-10 object-contain"
+            />
             <div>
               <h1 className="font-serif text-xl font-bold text-white">ClassicTour</h1>
               <p className="text-white/40 text-xs">안녕하세요, {user?.name}님</p>
@@ -164,26 +168,13 @@ function SelectTab({ musicians, favMusicians, onToggleFav, onSelect }) {
   );
 }
 
-// 음악가 이름에서 이니셜 추출
-function getInitials(name) {
-  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-}
-
-// 이름 기반 배경색 생성
-const AVATAR_COLORS = [
-  '#b45309', '#7c3aed', '#1d4ed8', '#065f46',
-  '#9f1239', '#1e40af', '#6d28d9', '#92400e',
-];
-function getAvatarColor(name) {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
-
 function MusicianCard({ musician, isFav, onToggleFav, onClick }) {
-  const [imgLoaded, setImgLoaded] = useState(false);
-  const [imgError, setImgError]   = useState(false);
-  const showImg = musician.photo_url && !imgError;
+  const [imgError, setImgError] = useState(false);
+
+  // photo_url(실제 사진) 있으면 우선, 없으면 악기 사진
+  const photo = (!imgError && musician.photo_url)
+    ? musician.photo_url
+    : INSTRUMENT_PHOTOS[musician.scraper_key];
 
   return (
     <div
@@ -192,32 +183,16 @@ function MusicianCard({ musician, isFav, onToggleFav, onClick }) {
                  hover:border-[#f5c842]/30 rounded-2xl overflow-hidden
                  transition-all duration-300 fade-in cursor-pointer"
     >
-      {/* Photo / Avatar */}
-      <div className="relative h-56 overflow-hidden"
-           style={{ background: showImg ? '#0a0e1a' : getAvatarColor(musician.name) }}>
-
-        {/* 이미지 */}
-        {showImg && (
-          <img
-            src={musician.photo_url}
-            alt={musician.name}
-            className={`w-full h-full object-cover object-top transition-all duration-500
-                        group-hover:scale-105 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
-            onLoad={() => setImgLoaded(true)}
-            onError={() => setImgError(true)}
-          />
-        )}
-
-        {/* 이니셜 아바타 (이미지 없거나 실패 시) */}
-        {!showImg && (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="font-serif text-6xl font-bold text-white/80 select-none">
-              {getInitials(musician.name_ko || musician.name)}
-            </span>
-          </div>
-        )}
-
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0e1a] via-transparent to-transparent" />
+      {/* Photo */}
+      <div className="relative h-56 overflow-hidden bg-[#0a0e1a]">
+        <img
+          src={photo}
+          alt={musician.name}
+          className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+          onError={() => setImgError(true)}
+        />
+        {/* 어두운 그라데이션 오버레이 */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0e1a] via-[#0a0e1a]/30 to-transparent" />
 
         {/* 하트 버튼 */}
         <button

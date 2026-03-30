@@ -49,10 +49,13 @@ export default function AuthPage() {
       <div className="w-full max-w-md fade-in">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#f5c842]/10 border border-[#f5c842]/20 mb-4">
-            <Music className="w-8 h-8 text-[#f5c842]" />
+          <div className="flex justify-center mb-3">
+            <img
+              src="/logo.png"
+              alt="ClassicTour"
+              className="w-36 h-36 object-contain drop-shadow-lg"
+            />
           </div>
-          <h1 className="font-serif text-3xl font-bold text-white tracking-wide">ClassicTour</h1>
           <p className="text-white/40 text-sm mt-1">클래식 공연 투어 트래커</p>
         </div>
 

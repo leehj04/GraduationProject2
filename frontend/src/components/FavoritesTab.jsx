@@ -205,18 +205,14 @@ function ConcertDetailCard({ concert, onRemove }) {
   );
 }
 
-function getInitials(name) {
-  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-}
-const AVATAR_COLORS = [
-  '#b45309','#7c3aed','#1d4ed8','#065f46',
-  '#9f1239','#1e40af','#6d28d9','#92400e',
-];
-function getAvatarColor(name) {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
+const INSTRUMENT_PHOTOS = {
+  'yunchan-lim':  'https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=600&q=80',
+  'trifonov':     'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=600&q=80',
+  'seongjin-cho': 'https://images.unsplash.com/photo-1552422535-c45813c61732?w=600&q=80',
+  'yuja-wang':    'https://images.unsplash.com/photo-1619961602105-16fa2a5465c7?w=600&q=80',
+  'lang-lang':    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=600&q=80',
+  'hilary-hahn':  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
+};
 
 /* ── 즐겨찾기 연주자 목록 ─────────────────────── */
 function FavMusicians({ musicians, onSelect, onRemove }) {
@@ -229,7 +225,7 @@ function FavMusicians({ musicians, onSelect, onRemove }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {musicians.map(m => {
-        const showImg = !!m.photo_url;
+        const photo = m.photo_url || INSTRUMENT_PHOTOS[m.scraper_key];
         return (
           <div
             key={m.id}
@@ -238,20 +234,14 @@ function FavMusicians({ musicians, onSelect, onRemove }) {
                        hover:border-[#f5c842]/30 rounded-2xl overflow-hidden
                        transition-all duration-200 cursor-pointer"
           >
-            <div className="relative h-48 overflow-hidden"
-                 style={{ background: showImg ? '#0a0e1a' : getAvatarColor(m.name) }}>
-              {showImg ? (
-                <img src={m.photo_url} alt={m.name}
-                  className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                  onError={e => { e.target.parentElement.style.background = getAvatarColor(m.name); e.target.style.display='none'; }} />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="font-serif text-5xl font-bold text-white/80 select-none">
-                    {getInitials(m.name_ko || m.name)}
-                  </span>
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0e1a] via-transparent to-transparent" />
+            <div className="relative h-48 overflow-hidden bg-[#0a0e1a]">
+              <img
+                src={photo}
+                alt={m.name}
+                className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                onError={e => { e.target.src = INSTRUMENT_PHOTOS['yunchan-lim']; }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0e1a] via-[#0a0e1a]/20 to-transparent" />
             </div>
             <div className="p-4 flex items-center justify-between">
               <div>
