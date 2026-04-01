@@ -3,12 +3,12 @@ import { Heart, MapPin, Clock, Music2, ChevronRight, Calendar } from 'lucide-rea
 import api from '../api';
 
 const FALLBACK_PHOTOS = {
-  'yunchan-lim':  'https://upload.wikimedia.org/wikipedia/commons/8/8e/Yunchan_Lim_at_the_2022_Van_Cliburn_Competition.jpg',
-  'trifonov':     'https://upload.wikimedia.org/wikipedia/commons/c/c3/Daniil_Trifonov_2019.jpg',
-  'seongjin-cho': 'https://upload.wikimedia.org/wikipedia/commons/3/32/Seong-Jin_Cho_2015.jpg',
-  'yuja-wang':    'https://upload.wikimedia.org/wikipedia/commons/2/2c/Yuja_Wang_2019.jpg',
-  'lang-lang':    'https://upload.wikimedia.org/wikipedia/commons/1/1e/Lang_Lang_Cannes.jpg',
-  'hilary-hahn':  'https://upload.wikimedia.org/wikipedia/commons/6/63/Hilary_Hahn_Recital.jpg',
+  'yunchan-lim':  'https://images.unsplash.com/photo-1476287803067-f714aa78eaa7?w=600&q=80',
+  'trifonov':     'https://images.unsplash.com/photo-1748597603497-2860de84bf11?w=600&q=80',
+  'seongjin-cho': 'https://images.unsplash.com/photo-1652058812858-8642c4f6185e?w=600&q=80',
+  'yuja-wang':    'https://images.unsplash.com/photo-1607817359832-19a6a93c5f23?w=600&q=80',
+  'lang-lang':    'https://images.unsplash.com/photo-1638794159092-d6a420eedab2?w=600&q=80',
+  'hilary-hahn':  'https://images.unsplash.com/photo-1692553173440-bc496a6f5e19?w=600&q=80',
 };
 
 const SUB_TABS = [
@@ -206,12 +206,12 @@ function ConcertDetailCard({ concert, onRemove }) {
 }
 
 const INSTRUMENT_PHOTOS = {
-  'yunchan-lim':  'https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=600&q=80',
-  'trifonov':     'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=600&q=80',
-  'seongjin-cho': 'https://images.unsplash.com/photo-1552422535-c45813c61732?w=600&q=80',
-  'yuja-wang':    'https://images.unsplash.com/photo-1619961602105-16fa2a5465c7?w=600&q=80',
-  'lang-lang':    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=600&q=80',
-  'hilary-hahn':  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
+  'yunchan-lim':  'https://images.unsplash.com/photo-1476287803067-f714aa78eaa7?w=600&q=80',
+  'trifonov':     'https://images.unsplash.com/photo-1748597603497-2860de84bf11?w=600&q=80',
+  'seongjin-cho': 'https://images.unsplash.com/photo-1652058812858-8642c4f6185e?w=600&q=80',
+  'yuja-wang':    'https://images.unsplash.com/photo-1607817359832-19a6a93c5f23?w=600&q=80',
+  'lang-lang':    'https://images.unsplash.com/photo-1638794159092-d6a420eedab2?w=600&q=80',
+  'hilary-hahn':  'https://images.unsplash.com/photo-1692553173440-bc496a6f5e19?w=600&q=80',
 };
 
 /* ── 즐겨찾기 연주자 목록 ─────────────────────── */

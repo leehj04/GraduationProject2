@@ -1,26 +1,31 @@
 import React from 'react';
-import { Calendar, MapPin, Clock, Music2 } from 'lucide-react';
+import { MapPin, Clock, Music2 } from 'lucide-react';
 
 const MONTH_LABELS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+const INSTRUMENT_PHOTOS = {
+  'yunchan-lim':  'https://images.unsplash.com/photo-1476287803067-f714aa78eaa7?w=200&q=80',
+  'trifonov':     'https://images.unsplash.com/photo-1748597603497-2860de84bf11?w=200&q=80',
+  'seongjin-cho': 'https://images.unsplash.com/photo-1652058812858-8642c4f6185e?w=200&q=80',
+  'yuja-wang':    'https://images.unsplash.com/photo-1607817359832-19a6a93c5f23?w=200&q=80',
+  'lang-lang':    'https://images.unsplash.com/photo-1638794159092-d6a420eedab2?w=200&q=80',
+  'hilary-hahn':  'https://images.unsplash.com/photo-1692553173440-bc496a6f5e19?w=200&q=80',
+};
 
 export default function ScheduleSidebar({
   musician, concerts, selectedMonth, availableMonths,
   loading, onConcertClick, onMonthFilter
 }) {
+  const photo = musician
+    ? (musician.photo_url || INSTRUMENT_PHOTOS[musician.scraper_key])
+    : null;
+
   return (
     <div className="sidebar-panel slide-in">
       {/* Header */}
       <div className="px-5 pt-5 pb-4 border-b border-white/10 flex-shrink-0">
         {musician ? (
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
-              <img
-                src={musician.photo_url}
-                alt={musician.name}
-                className="w-full h-full object-cover"
-                onError={e => { e.target.style.display='none'; }}
-              />
-            </div>
             <div>
               <h2 className="font-serif font-bold text-white text-base leading-tight">
                 {musician.name_ko || musician.name}
@@ -96,7 +101,6 @@ export default function ScheduleSidebar({
 }
 
 function ConcertList({ concerts, onConcertClick }) {
-  // Group concerts by month
   const grouped = concerts.reduce((acc, concert) => {
     const [yr, mo] = concert.concert_date.split('-');
     const key = `${yr}-${mo}`;
@@ -139,14 +143,11 @@ function ConcertCard({ concert, onClick }) {
                  card-hover"
     >
       <div className="flex gap-3 items-start">
-        {/* Date badge */}
         <div className="flex-shrink-0 w-11 text-center bg-[#f5c842]/10 border border-[#f5c842]/20 rounded-lg p-1.5">
           <p className="text-[#f5c842] font-bold text-lg leading-none">{dayNum}</p>
           <p className="text-[#f5c842]/70 text-[10px] mt-0.5">{monthLabel}</p>
           <p className="text-white/30 text-[10px]">{dayLabel}</p>
         </div>
-
-        {/* Content */}
         <div className="flex-1 min-w-0">
           <p className="text-white font-semibold text-sm leading-tight truncate group-hover:text-[#f5c842] transition-colors">
             {concert.venue_name}

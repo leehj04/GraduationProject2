@@ -66,7 +66,12 @@ export default function AuthPage() {
             {['login', 'register'].map(m => (
               <button
                 key={m}
-                onClick={() => { setMode(m); setError(''); }}
+                onClick={() => {
+                  setMode(m);
+                  setError('');
+                  setForm({ email: '', password: '', name: '', age: '', gender: '', nationality: '' });
+                  setShowPw(false);
+                }}
                 className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200
                   ${mode === m ? 'bg-[#f5c842] text-[#0a0e1a]' : 'text-white/50 hover:text-white'}`}
               >
