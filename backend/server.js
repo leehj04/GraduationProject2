@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const cron = require('node-cron');
 const { initDB, getDB } = require('./db');
+const adminRoutes = require('./routes/admin');
 const authRoutes          = require('./routes/auth');
 const musicianRoutes      = require('./routes/musicians');
 const concertRoutes       = require('./routes/concerts');
@@ -25,6 +26,7 @@ app.use(express.json());
 initDB();
 
 // Routes
+app.use('/api/admin', adminRoutes);
 app.use('/api/auth',            authRoutes);
 app.use('/api/musicians',       musicianRoutes);
 app.use('/api/concerts',        concertRoutes);

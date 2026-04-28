@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import AdminPage from './components/AdminPage';
 import AuthPage from './components/AuthPage';
 import MusicianSelect from './components/MusicianSelect';
 import MapPage from './components/MapPage';
@@ -23,6 +24,7 @@ function AppRoutes() {
   const { user } = useAuth();
   return (
     <Routes>
+      <Route path="/admin" element={<AdminPage />} />
       <Route path="/" element={user ? <Navigate to="/musicians" replace /> : <AuthPage />} />
       <Route path="/musicians" element={
         <ProtectedRoute><MusicianSelect /></ProtectedRoute>
