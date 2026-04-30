@@ -205,16 +205,7 @@ function RecommendedConcerts({ concerts, favConcerts, onToggleFav }) {
   );
 }
 
-const INSTRUMENT_PHOTOS = {
-  'yunchan-lim':  'https://images.unsplash.com/photo-1476287803067-f714aa78eaa7?w=600&q=80',
-  'trifonov':     'https://images.unsplash.com/photo-1748597603497-2860de84bf11?w=600&q=80',
-  'seongjin-cho': 'https://images.unsplash.com/photo-1652058812858-8642c4f6185e?w=600&q=80',
-  'yuja-wang':    'https://images.unsplash.com/photo-1607817359832-19a6a93c5f23?w=600&q=80',
-  'lang-lang':    'https://images.unsplash.com/photo-1638794159092-d6a420eedab2?w=600&q=80',
-  'hilary-hahn':  'https://images.unsplash.com/photo-1692553173440-bc496a6f5e19?w=600&q=80',
-};
-
-/* ── 추천 연주자 ───────────────────────────────── */
+/* ── 추천 연주자 (공연 추천과 동일한 리스트 디자인) ── */
 function RecommendedMusicians({ musicians, favMusicians, onToggleFav, onSelect }) {
   if (musicians.length === 0) return (
     <div className="text-center py-16">
@@ -224,57 +215,50 @@ function RecommendedMusicians({ musicians, favMusicians, onToggleFav, onSelect }
   );
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {musicians.map((m, idx) => {
-        const photo = m.photo_url || INSTRUMENT_PHOTOS[m.scraper_key];
-        return (
-          <div key={m.id} onClick={() => onSelect(m)}
-            className="group relative bg-white/5 hover:bg-white/10 border border-white/10
-                       hover:border-[#f5c842]/30 rounded-2xl overflow-hidden
-                       transition-all duration-200 cursor-pointer">
-            <div className="relative h-40 overflow-hidden bg-[#0a0e1a]">
-              <img
-                src={photo}
-                alt={m.name}
-                className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                onError={e => { e.target.src = INSTRUMENT_PHOTOS['yunchan-lim']; }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0e1a] via-[#0a0e1a]/20 to-transparent" />
-              <div className="absolute top-3 left-3 w-7 h-7 rounded-full bg-[#f5c842] flex items-center justify-center">
-                <span className="text-[#0a0e1a] font-bold text-xs">{idx + 1}</span>
-              </div>
+    <div className="space-y-3">
+      {musicians.map((m, idx) => (
+        <div key={m.id}
+          onClick={() => onSelect(m)}
+          className="group bg-white/5 hover:bg-white/10 border border-white/10
+                     hover:border-[#f5c842]/25 rounded-2xl p-4 transition-all duration-200 cursor-pointer">
+          <div className="flex gap-4 items-start">
+            {/* Rank badge */}
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#f5c842]/10 border border-[#f5c842]/20
+                            flex items-center justify-center text-[#f5c842] font-bold text-sm">
+              {idx + 1}
             </div>
-            <div className="p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-white font-semibold group-hover:text-[#f5c842] transition-colors">
-                    {m.name_ko || m.name}
-                  </p>
-                  {m.name_ko && <p className="text-white/40 text-xs mt-0.5">{m.name}</p>}
-                  {m.reason && (
-                    <div className="flex items-center gap-1 mt-2">
-                      <Sparkles className="w-3 h-3 text-[#f5c842]/60" />
-                      <p className="text-[#f5c842]/60 text-xs">{m.reason}</p>
-                    </div>
-                  )}
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <p className="text-white font-semibold text-sm group-hover:text-[#f5c842] transition-colors">
+                {m.name_ko || m.name}
+              </p>
+              {m.name_ko && <p className="text-white/40 text-xs mt-0.5">{m.name}</p>}
+              {m.instrument && (
+                <p className="text-white/30 text-xs mt-0.5">{m.instrument}</p>
+              )}
+              {m.reason && (
+                <div className="flex items-center gap-1 mt-2">
+                  <Sparkles className="w-3 h-3 text-[#f5c842]/60" />
+                  <p className="text-[#f5c842]/60 text-xs">{m.reason}</p>
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button
-                    onClick={e => onToggleFav(e, m.id)}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all
-                                ${favMusicians.has(m.id)
-                                  ? 'bg-red-500/90 hover:bg-red-600'
-                                  : 'bg-white/10 hover:bg-white/20'}`}
-                  >
-                    <Heart className={`w-3.5 h-3.5 ${favMusicians.has(m.id) ? 'text-white fill-white' : 'text-white/60'}`} />
-                  </button>
-                  <ChevronRight className="w-4 h-4 text-white/30 group-hover:text-[#f5c842] transition-all group-hover:translate-x-1" />
-                </div>
-              </div>
+              )}
             </div>
+
+            {/* Heart */}
+            <button
+              onClick={e => onToggleFav(e, m.id)}
+              className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center
+                          transition-all duration-200
+                          ${favMusicians.has(m.id)
+                            ? 'bg-red-500/90 hover:bg-red-600'
+                            : 'bg-white/10 hover:bg-white/20'}`}
+            >
+              <Heart className={`w-4 h-4 ${favMusicians.has(m.id) ? 'text-white fill-white' : 'text-white/60'}`} />
+            </button>
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
 }

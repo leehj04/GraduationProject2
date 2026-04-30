@@ -205,16 +205,7 @@ function ConcertDetailCard({ concert, onRemove }) {
   );
 }
 
-const INSTRUMENT_PHOTOS = {
-  'yunchan-lim':  'https://images.unsplash.com/photo-1476287803067-f714aa78eaa7?w=600&q=80',
-  'trifonov':     'https://images.unsplash.com/photo-1748597603497-2860de84bf11?w=600&q=80',
-  'seongjin-cho': 'https://images.unsplash.com/photo-1652058812858-8642c4f6185e?w=600&q=80',
-  'yuja-wang':    'https://images.unsplash.com/photo-1607817359832-19a6a93c5f23?w=600&q=80',
-  'lang-lang':    'https://images.unsplash.com/photo-1638794159092-d6a420eedab2?w=600&q=80',
-  'hilary-hahn':  'https://images.unsplash.com/photo-1692553173440-bc496a6f5e19?w=600&q=80',
-};
-
-/* ── 즐겨찾기 연주자 목록 ─────────────────────── */
+/* ── 즐겨찾기 연주자 목록 (즐겨찾기 공연과 동일한 카드 디자인) ── */
 function FavMusicians({ musicians, onSelect, onRemove }) {
   if (musicians.length === 0) return (
     <EmptyState icon={<Music2 className="w-12 h-12 text-white/20" />}
@@ -223,45 +214,41 @@ function FavMusicians({ musicians, onSelect, onRemove }) {
   );
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {musicians.map(m => {
-        const photo = m.photo_url || INSTRUMENT_PHOTOS[m.scraper_key];
-        return (
-          <div
-            key={m.id}
-            onClick={() => onSelect(m)}
-            className="group relative bg-white/5 hover:bg-white/10 border border-white/10
-                       hover:border-[#f5c842]/30 rounded-2xl overflow-hidden
-                       transition-all duration-200 cursor-pointer"
-          >
-            <div className="relative h-48 overflow-hidden bg-[#0a0e1a]">
-              <img
-                src={photo}
-                alt={m.name}
-                className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                onError={e => { e.target.src = INSTRUMENT_PHOTOS['yunchan-lim']; }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0e1a] via-[#0a0e1a]/20 to-transparent" />
-            </div>
-            <div className="p-4 flex items-center justify-between">
-              <div>
-                <p className="text-white font-semibold group-hover:text-[#f5c842] transition-colors">
-                  {m.name_ko || m.name}
-                </p>
-                {m.name_ko && <p className="text-white/40 text-xs mt-0.5">{m.name}</p>}
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {musicians.map(m => (
+        <div
+          key={m.id}
+          onClick={() => onSelect(m)}
+          className="group relative bg-white/5 hover:bg-white/10 border border-white/10
+                     hover:border-[#f5c842]/30 rounded-2xl overflow-hidden
+                     transition-all duration-200 cursor-pointer"
+        >
+          <div className="p-4">
+            <p className="text-[#f5c842] text-xs font-medium mb-1">{m.instrument || '연주자'}</p>
+            <p className="text-white font-semibold text-sm leading-tight group-hover:text-[#f5c842] transition-colors">
+              {m.name_ko || m.name}
+            </p>
+            {m.name_ko && (
+              <p className="text-white/40 text-xs mt-1">{m.name}</p>
+            )}
+            {m.nationality && (
+              <div className="flex items-center gap-1 mt-2">
+                <MapPin className="w-3 h-3 text-white/30" />
+                <p className="text-white/30 text-xs">{m.nationality}</p>
               </div>
-              <ChevronRight className="w-4 h-4 text-white/30 group-hover:text-[#f5c842] transition-all group-hover:translate-x-1" />
-            </div>
-            <button
-              onClick={e => { e.stopPropagation(); onRemove(m.id); }}
-              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-red-500/80 hover:bg-red-600
-                         flex items-center justify-center transition-all"
-            >
-              <Heart className="w-4 h-4 text-white fill-white" />
-            </button>
+            )}
           </div>
-        );
-      })}
+
+          {/* Remove heart */}
+          <button
+            onClick={e => { e.stopPropagation(); onRemove(m.id); }}
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-red-500/80 hover:bg-red-600
+                       flex items-center justify-center transition-all"
+          >
+            <Heart className="w-4 h-4 text-white fill-white" />
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
