@@ -7,37 +7,32 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api';
 import FavoritesTab from './FavoritesTab';
+import TravelSearch from './TravelSearch';
 import RecommendTab from './RecommendTab';
 
 const MAIN_TABS = [
   { id: 'select',    label: '연주자 선택', icon: Music },
   { id: 'recommend', label: '추천',        icon: Sparkles },
   { id: 'favorites', label: '즐겨찾기',    icon: Bookmark },
+  { id: 'travel',    label: '여행 검색',   icon: Globe },
 ];
 
 // 악기별 이모지
 const INSTRUMENT_EMOJI = {
-  '피아노':      '🎹',
-  '바이올린':    '🎻',
-  '첼로':        '🎻',
-  '비올라':      '🎻',
-  '플루트':      '🎵',
-  '지휘':        '🎼',
-  '소프라노':    '🎤',
-  '메조소프라노': '🎤',
-  '테너':        '🎤',
-  '바리톤':      '🎤',
-  '베이스':      '🎤',
-  '오르간':      '🎹',
-  '하프':        '🎵',
-  '클라리넷':    '🎵',
-  '트럼펫':      '🎺',
-  '오보에':      '🎵',
-  '파곳':        '🎵',
-  '호른':        '🎺',
-  '트롬본':      '🎺',
-  '타악기':      '🥁',
-  '기타':        '🎸',
+  '피아노': '🎹', '바이올린': '🎻', '첼로': '🎻', '비올라': '🎻',
+  '플루트': '🎵', '지휘': '🎼', '소프라노': '🎤', '메조소프라노': '🎤',
+  '테너': '🎤', '바리톤': '🎤', '베이스': '🎤', '오르간': '🎹',
+  '하프': '🎵', '클라리넷': '🎵', '트럼펫': '🎺', '오보에': '🎵',
+  '파곳': '🎵', '호른': '🎺', '트롬본': '🎺', '타악기': '🥁', '기타': '🎸',
+  'Piano': '🎹', 'Violin': '🎻', 'Cello': '🎻', 'Viola': '🎻',
+  'Flute': '🎵', 'Conductor': '🎼', 'Soprano': '🎤', 'Mezzo-Soprano': '🎤',
+  'Tenor': '🎤', 'Baritone': '🎤', 'Bass': '🎤', 'Organ': '🎹',
+  'Harp': '🎵', 'Clarinet': '🎵', 'Trumpet': '🎺', 'Oboe': '🎵',
+  'Bassoon': '🎵', 'Horn': '🎺', 'Trombone': '🎺', 'Percussion': '🥁',
+  'Guitar': '🎸', 'Double Bass': '🎻', 'Harpsichord': '🎹',
+  'Orchestra': '🎼', 'Quartet': '🎻', 'Trio': '🎻', 'Ensemble': '🎼',
+  'Choir': '🎤', 'Vocals': '🎤', 'Opera Singer': '🎤',
+  'Composer': '✍️', 'Performer': '🎵',
 };
 
 export default function MusicianSelect() {
@@ -168,6 +163,7 @@ export default function MusicianSelect() {
           />
         )}
         {activeTab === 'recommend' && <RecommendTab />}
+        {activeTab === 'travel' && <TravelSearch />}
         {activeTab === 'favorites' && (
           <FavoritesTab onSelectMusician={id => navigate(`/map/${id}`)} />
         )}
@@ -195,7 +191,7 @@ function SelectTab({
         <input
           type="text"
           className="input-field pl-10 text-sm"
-          placeholder="이름으로 검색..."
+          placeholder="임윤찬, Yunchan Lim, piano... 으로 검색"
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
         />

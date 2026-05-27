@@ -28,6 +28,7 @@ initDB();
 // Routes
 app.use('/api/admin', adminRoutes);
 app.use('/api/auth',            authRoutes);
+app.use('/api/travel', require('./routes/travel'));
 app.use('/api/musicians',       musicianRoutes);
 app.use('/api/concerts',        concertRoutes);
 app.use('/api/nearby',          nearbyRoutes);
