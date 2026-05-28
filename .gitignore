@@ -9,8 +9,8 @@ backend/.env
 frontend/.env
 
 # 데이터베이스
-*.db
-*.sqlite
+# *.db
+# *.sqlite
 
 # macOS 시스템 파일
 .DS_Store
