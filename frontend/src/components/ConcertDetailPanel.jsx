@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   X, MapPin, Phone, Clock, Music, ExternalLink,
   UtensilsCrossed, Coffee, Landmark, Star, Navigation,
-  Users, Loader2, User, Heart
+  Users, Loader2, User, Heart, Train, Bus, AlertCircle
 } from 'lucide-react';
 import api from '../api';
 import CompanionTab from './CompanionTab';
@@ -11,9 +11,10 @@ import ReviewSection from './ReviewSection';
 import ShareCardButton from './ShareCardButton';
 
 const TABS = [
-  { id: 'info',     label: '공연 정보',  icon: Music },
-  { id: 'nearby',   label: '주변 정보',  icon: MapPin },
-  { id: 'companion',label: '동행 구하기', icon: Users },
+  { id: 'info',      label: '공연 정보',  icon: Music },
+  { id: 'nearby',    label: '주변 정보',  icon: MapPin },
+  { id: 'transit',   label: '대중교통',   icon: Train },
+  { id: 'companion', label: '동행 구하기', icon: Users },
 ];
 
 const NEARBY_TABS = [
@@ -54,7 +55,6 @@ export default function ConcertDetailPanel({ concert, musician, onClose }) {
           {concert.venue_name}
         </h2>
         <div className="flex items-center gap-2 flex-shrink-0">
-          {/* 즐겨찾기 하트 버튼 */}
           <button
             onClick={toggleFav}
             className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200
@@ -94,6 +94,7 @@ export default function ConcertDetailPanel({ concert, musician, onClose }) {
       <div className="flex-1 overflow-hidden flex flex-col">
         {activeTab === 'info'      && <InfoTab concert={concert} musician={musician} />}
         {activeTab === 'nearby'    && <NearbyTab concert={concert} />}
+        {activeTab === 'transit'   && <TransitTab concert={concert} />}
         {activeTab === 'companion' && <CompanionTab concertId={concert.id} />}
       </div>
     </div>
@@ -109,7 +110,6 @@ function InfoTab({ concert, musician }) {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      {/* Venue photo */}
       {concert.venue_photo_url && (
         <div className="relative h-44 overflow-hidden flex-shrink-0">
           <img
@@ -123,20 +123,17 @@ function InfoTab({ concert, musician }) {
       )}
 
       <div className="px-5 py-5 space-y-5">
-        {/* Venue info */}
         <Section title="공연장">
           <InfoRow icon={MapPin} text={concert.venue_name} bold />
           {concert.venue_address && <InfoRow icon={MapPin} text={concert.venue_address} />}
           {concert.venue_phone   && <InfoRow icon={Phone}  text={concert.venue_phone} />}
         </Section>
 
-        {/* Date / time */}
         <Section title="일정">
           <InfoRow icon={Music}  text={dateStr} bold />
           {concert.concert_time && <InfoRow icon={Clock} text={concert.concert_time} />}
         </Section>
 
-        {/* Performer */}
         {musician && (
           <Section title="연주자">
             <div className="flex items-center gap-3 mt-1">
@@ -157,7 +154,6 @@ function InfoTab({ concert, musician }) {
           </Section>
         )}
 
-        {/* Program */}
         {concert.program?.length > 0 && (
           <Section title="연주 곡목">
             <div className="space-y-2 mt-1">
@@ -171,7 +167,6 @@ function InfoTab({ concert, musician }) {
           </Section>
         )}
 
-        {/* Ticket link */}
         {concert.ticket_url && (
           <a
             href={concert.ticket_url}
@@ -183,7 +178,6 @@ function InfoTab({ concert, musician }) {
           </a>
         )}
 
-        {/* 이메일 알림 설정 */}
         <div className="border-t border-white/8 pt-4">
           <NotificationSettings
             concertId={concert.id}
@@ -191,7 +185,6 @@ function InfoTab({ concert, musician }) {
           />
         </div>
 
-        {/* 투어 공유 버튼 */}
         {musician && (
           <ShareCardButton
             musicianId={musician.id}
@@ -199,7 +192,6 @@ function InfoTab({ concert, musician }) {
           />
         )}
 
-        {/* 공연 후기 */}
         <div className="border-t border-white/8 pt-4">
           <ReviewSection concertId={concert.id} />
         </div>
@@ -253,7 +245,6 @@ function NearbyTab({ concert }) {
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col">
-      {/* Sub-tabs */}
       <div className="flex border-b border-white/10 flex-shrink-0 bg-white/3">
         {NEARBY_TABS.map(tab => {
           const Icon = tab.icon;
@@ -354,6 +345,170 @@ function PlaceCard({ place }) {
             </span>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── TRANSIT TAB ──────────────────────────────── */
+function TransitTab({ concert }) {
+  const [data, setData]       = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState('');
+
+  useEffect(() => {
+    if (!concert.venue_lat || !concert.venue_lng) {
+      setError('공연장 위치 정보가 없습니다.');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    api.get('/api/travel/transit', {
+      params: {
+        venueLat:  concert.venue_lat,
+        venueLng:  concert.venue_lng,
+        venueName: concert.venue_name
+      }
+    })
+      .then(r => setData(r.data))
+      .catch(err => setError(err.response?.data?.error || '대중교통 정보를 불러올 수 없습니다.'))
+      .finally(() => setLoading(false));
+  }, [concert.venue_lat, concert.venue_lng, concert.venue_name]);
+
+  // 구글 맵 대중교통 길찾기 링크
+  const googleMapsTransitUrl = concert.venue_lat && concert.venue_lng
+    ? `https://www.google.com/maps/dir/?api=1&destination=${concert.venue_lat},${concert.venue_lng}&travelmode=transit`
+    : null;
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#f5c842] animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center px-5 text-center gap-3">
+        <AlertCircle className="w-10 h-10 text-white/20" />
+        <p className="text-white/40 text-sm">{error}</p>
+        {googleMapsTransitUrl && (
+          <a
+            href={googleMapsTransitUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-4 py-2 bg-white/10 hover:bg-white/20
+                       rounded-lg text-white/70 text-xs transition-colors"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            구글 맵에서 길찾기
+          </a>
+        )}
+      </div>
+    );
+  }
+
+  const hasStations = data?.transit_stations?.length > 0;
+  const hasBusStops = data?.bus_stops?.length > 0;
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="px-5 py-5 space-y-6">
+
+        {/* 구글 맵 길찾기 버튼 */}
+        {googleMapsTransitUrl && (
+          <a
+            href={googleMapsTransitUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full
+                       bg-[#f5c842]/10 hover:bg-[#f5c842]/20
+                       border border-[#f5c842]/30 hover:border-[#f5c842]/50
+                       rounded-xl py-3 text-[#f5c842] text-sm font-medium
+                       transition-all duration-200"
+          >
+            <Navigation className="w-4 h-4" />
+            구글 맵에서 대중교통 길찾기
+            <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+          </a>
+        )}
+
+        {/* 지하철/기차역 */}
+        {hasStations && (
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Train className="w-4 h-4 text-[#f5c842]" />
+              <p className="text-white/40 text-[10px] font-semibold uppercase tracking-widest">
+                근처 지하철 / 기차역
+              </p>
+            </div>
+            <div className="space-y-2">
+              {data.transit_stations.map((station, i) => (
+                <TransitCard key={i} item={station} type="train" />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 버스 정류장 */}
+        {hasBusStops && (
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Bus className="w-4 h-4 text-[#f5c842]" />
+              <p className="text-white/40 text-[10px] font-semibold uppercase tracking-widest">
+                근처 버스 정류장
+              </p>
+            </div>
+            <div className="space-y-2">
+              {data.bus_stops.map((stop, i) => (
+                <TransitCard key={i} item={stop} type="bus" />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 데이터 없을 때 */}
+        {!hasStations && !hasBusStops && !loading && !error && (
+          <div className="flex flex-col items-center justify-center py-10 text-center gap-3">
+            <Train className="w-10 h-10 text-white/20" />
+            <p className="text-white/40 text-sm">주변 대중교통 정보가 없습니다.</p>
+            <p className="text-white/25 text-xs">공연장 위치 반경 800m 이내 결과예요.</p>
+          </div>
+        )}
+
+        {/* 안내 문구 */}
+        <div className="px-3 py-3 bg-white/3 border border-white/8 rounded-xl">
+          <p className="text-white/30 text-xs leading-relaxed">
+            💡 공연장 반경 800m 이내 지하철·기차역과 400m 이내 버스 정류장을 표시해요.
+            정확한 출발지 기준 경로는 구글 맵 길찾기를 이용해주세요.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TransitCard({ item, type }) {
+  const distanceText = item.distance_m < 1000
+    ? `${item.distance_m}m`
+    : `${(item.distance_m / 1000).toFixed(1)}km`;
+
+  const Icon = type === 'train' ? Train : Bus;
+
+  return (
+    <div className="flex items-center gap-3 bg-white/5 border border-white/8
+                    rounded-xl px-4 py-3 hover:bg-white/10 transition-colors">
+      <div className="w-8 h-8 rounded-lg bg-[#f5c842]/10 border border-[#f5c842]/20
+                      flex items-center justify-center flex-shrink-0">
+        <Icon className="w-4 h-4 text-[#f5c842]" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-white font-medium text-sm truncate">{item.name}</p>
+      </div>
+      <div className="flex items-center gap-1 flex-shrink-0">
+        <Navigation className="w-3 h-3 text-white/30" />
+        <span className="text-white/40 text-xs">{distanceText}</span>
       </div>
     </div>
   );

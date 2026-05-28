@@ -106,4 +106,65 @@ router.get('/:id', (req, res) => {
   }
 });
 
+// GET /api/concerts/nearby-user?lat=37.5&lng=126.9&musicianId=1
+// 사용자 위치 기준 50km 이내 공연 필터
+router.get('/nearby-user', (req, res) => {
+  try {
+    const db = getDB();
+    const { lat, lng, musicianId, months = 6 } = req.query;
+
+    if (!lat || !lng || !musicianId) {
+      return res.status(400).json({ error: 'lat, lng, musicianId가 필요합니다.' });
+    }
+
+    const userLat = parseFloat(lat);
+    const userLng = parseFloat(lng);
+    const radiusKm = 50;
+
+    const now = new Date();
+    const fromDate = now.toISOString().split('T')[0];
+    const endDate = new Date(now);
+    endDate.setMonth(endDate.getMonth() + parseInt(months));
+    const toDate = endDate.toISOString().split('T')[0];
+
+    const concerts = db.prepare(`
+      SELECT c.*, m.name as musician_name, m.name_ko as musician_name_ko, m.photo_url as musician_photo
+      FROM concerts c
+      JOIN musicians m ON c.musician_id = m.id
+      WHERE c.musician_id = ?
+        AND c.concert_date >= ?
+        AND c.concert_date <= ?
+        AND c.venue_lat IS NOT NULL
+        AND c.venue_lng IS NOT NULL
+    `).all(musicianId, fromDate, toDate);
+
+    // Haversine 공식으로 거리 계산 (JS에서 처리)
+    const R = 6371; // 지구 반지름 km
+    const filtered = concerts
+      .map(c => {
+        const dLat = (parseFloat(c.venue_lat) - userLat) * Math.PI / 180;
+        const dLng = (parseFloat(c.venue_lng) - userLng) * Math.PI / 180;
+        const a =
+          Math.sin(dLat / 2) ** 2 +
+          Math.cos(userLat * Math.PI / 180) *
+          Math.cos(parseFloat(c.venue_lat) * Math.PI / 180) *
+          Math.sin(dLng / 2) ** 2;
+        const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return { ...c, distance_km: Math.round(dist) };
+      })
+      .filter(c => c.distance_km <= radiusKm)
+      .sort((a, b) => a.distance_km - b.distance_km);
+
+    const parsed = filtered.map(c => ({
+      ...c,
+      program: c.program ? JSON.parse(c.program) : []
+    }));
+
+    res.json(parsed);
+  } catch (err) {
+    console.error('Nearby user concerts error:', err);
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
 module.exports = router;

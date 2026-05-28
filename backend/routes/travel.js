@@ -79,4 +79,89 @@ router.get('/countries', (req, res) => {
   }
 });
 
+// GET /api/travel/transit?venueLat=48.8&venueLng=2.3&venueName=Salle Pleyel
+// 공연장 대중교통 정보 (Google Directions API)
+router.get('/transit', async (req, res) => {
+  try {
+    const { venueLat, venueLng, venueName } = req.query;
+    if (!venueLat || !venueLng) {
+      return res.status(400).json({ error: 'venueLat, venueLng가 필요합니다.' });
+    }
+
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'Google Maps API 키가 설정되지 않았습니다.' });
+    }
+
+    const axios = require('axios');
+    const destination = `${venueLat},${venueLng}`;
+
+    // 1) Places API로 공연장 주변 지하철/버스 정류장 검색
+    const placesRes = await axios.get('https://maps.googleapis.com/maps/api/place/nearbysearch/json', {
+      params: {
+        location: destination,
+        radius: 800,
+        type: 'transit_station',
+        key: apiKey,
+        language: 'ko'
+      }
+    });
+
+    const stations = (placesRes.data.results || []).slice(0, 5).map(p => {
+      const R = 6371000;
+      const dLat = (p.geometry.location.lat - parseFloat(venueLat)) * Math.PI / 180;
+      const dLng = (p.geometry.location.lng - parseFloat(venueLng)) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 +
+        Math.cos(parseFloat(venueLat)*Math.PI/180) *
+        Math.cos(p.geometry.location.lat*Math.PI/180) *
+        Math.sin(dLng/2)**2;
+      const dist = Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+      return {
+        name: p.name,
+        distance_m: dist,
+        types: p.types,
+        place_id: p.place_id
+      };
+    });
+
+    // 2) 버스 정류장도 따로 검색
+    const busRes = await axios.get('https://maps.googleapis.com/maps/api/place/nearbysearch/json', {
+      params: {
+        location: destination,
+        radius: 400,
+        type: 'bus_station',
+        key: apiKey,
+        language: 'ko'
+      }
+    });
+
+    const busStops = (busRes.data.results || []).slice(0, 3).map(p => {
+      const R = 6371000;
+      const dLat = (p.geometry.location.lat - parseFloat(venueLat)) * Math.PI / 180;
+      const dLng = (p.geometry.location.lng - parseFloat(venueLng)) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 +
+        Math.cos(parseFloat(venueLat)*Math.PI/180) *
+        Math.cos(p.geometry.location.lat*Math.PI/180) *
+        Math.sin(dLng/2)**2;
+      const dist = Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+      return {
+        name: p.name,
+        distance_m: dist,
+        types: p.types,
+        place_id: p.place_id
+      };
+    });
+
+    res.json({
+      venue_name: venueName,
+      transit_stations: stations,
+      bus_stops: busStops
+    });
+
+  } catch (err) {
+    console.error('Transit info error:', err);
+    res.status(500).json({ error: '대중교통 정보를 불러올 수 없습니다.' });
+  }
+});
+
 module.exports = router;

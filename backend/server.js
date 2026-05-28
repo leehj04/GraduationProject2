@@ -20,7 +20,13 @@ const { sendNotificationEmail } = require('./utils/email');
 const app  = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
+app.use(cors({
+  origin: [
+    process.env.FRONTEND_URL || 'http://localhost:5173',
+    'https://classictourgraduationproject-2ok9elzrl-leehj-s-projects.vercel.app'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 initDB();
