@@ -10,7 +10,7 @@ router.get('/my', authenticateToken, (req, res) => {
     const db = getDB();
     const reviews = db.prepare(`
       SELECT r.*, c.venue_name, c.concert_date, c.concert_time,
-             m.name as musician_name, m.name_ko as musician_name_ko
+         m.id as musician_id, m.name as musician_name, m.name_ko as musician_name_ko
       FROM reviews r
       JOIN concerts c ON r.concert_id = c.id
       JOIN musicians m ON c.musician_id = m.id
