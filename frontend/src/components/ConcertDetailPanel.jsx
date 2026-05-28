@@ -131,7 +131,7 @@ function InfoTab({ concert, musician }) {
 
         <Section title="일정">
           <InfoRow icon={Music}  text={dateStr} bold />
-          {concert.concert_time && <InfoRow icon={Clock} text={concert.concert_time} />}
+          {concert.concert_time && <InfoRow icon={Clock} text={concert.concert_time?.slice(0, 5)} />}
         </Section>
 
         {musician && (

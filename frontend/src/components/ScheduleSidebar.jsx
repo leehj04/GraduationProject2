@@ -49,7 +49,7 @@ export default function ScheduleSidebar({
         setUserLocation({ lat, lng });
         try {
           const res = await api.get('/api/concerts/nearby-user', {
-            params: { lat, lng, musicianId: musician?.id }
+            params: { lat, lng }
           });
           setNearbyConcerts(res.data);
           setNearbyMode(true);
@@ -291,7 +291,7 @@ function ConcertCard({ concert, onClick, showDistance }) {
           {concert.concert_time && (
             <div className="flex items-center gap-1 mt-1">
               <Clock className="w-3 h-3 text-white/30 flex-shrink-0" />
-              <p className="text-white/40 text-xs">{concert.concert_time}</p>
+              <p className="text-white/40 text-xs">{concert.concert_time?.slice(0, 5)}</p>
             </div>
           )}
           {/* 거리 표시 (50km 모드일 때) */}

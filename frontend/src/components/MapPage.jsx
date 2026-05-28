@@ -111,7 +111,7 @@ export default function MapPage() {
             <p style="font-weight:600;margin:0 0 4px;font-size:13px">${concert.venue_name}</p>
             <p style="color:#f5c842;margin:0;font-size:12px">${formatDate(concert.concert_date)}</p>
             ${concert.concert_time
-              ? `<p style="color:rgba(255,255,255,0.5);margin:4px 0 0;font-size:11px">${concert.concert_time}</p>`
+              ? `<p style="color:rgba(255,255,255,0.5);margin:4px 0 0;font-size:11px">${concert.concert_time?.slice(0, 5)}</p>`
               : ''}
           </div>`,
         disableAutoPan: true,

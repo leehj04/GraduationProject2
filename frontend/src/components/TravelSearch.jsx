@@ -128,8 +128,9 @@ export default function TravelSearch() {
             <select
               value={form.country}
               onChange={e => setForm(f => ({ ...f, country: e.target.value }))}
-              className="w-full bg-white/8 border border-white/15 rounded-xl px-3 py-2.5
-                         text-white text-sm focus:outline-none focus:border-[#f5c842]/50"
+              className="w-full bg-[#1a1f35] border border-white/15 rounded-xl px-3 py-2.5
+                        text-white text-sm focus:outline-none focus:border-[#f5c842]/50
+                        appearance-none cursor-pointer"
             >
               {countries.map(c => (
                 <option key={c} value={c} className="bg-[#1a1f35] text-white">
