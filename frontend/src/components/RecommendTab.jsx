@@ -254,7 +254,7 @@ function NearbyConcerts({ concerts, loading, error, loaded, favConcerts, onToggl
       {concerts.map((concert) => (
         <div
           key={concert.id}
-          onClick={() => onNavigate(`/map/${concert.musician_id}`)}
+          onClick={() => onNavigate(`/map/${concert.musician_id}`, { state: { selectedConcertId: concert.id } })}
           className="group bg-white/5 hover:bg-white/10 border border-white/10
                      hover:border-[#f5c842]/25 rounded-2xl p-4 transition-all duration-200 cursor-pointer"
         >
