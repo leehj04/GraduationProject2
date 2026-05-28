@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { getDB } = require('../db');
+const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'default_dev_secret';
@@ -87,6 +88,50 @@ router.post('/login', async (req, res) => {
     });
   } catch (err) {
     console.error('Login error:', err);
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+// PUT /api/auth/profile — 회원정보 수정
+router.put('/profile', authenticateToken, async (req, res) => {
+  const { name, age, gender, nationality } = req.body;
+  if (!name?.trim()) {
+    return res.status(400).json({ error: '이름은 필수입니다.' });
+  }
+  try {
+    const db = getDB();
+    db.prepare(`
+      UPDATE users SET name = ?, age = ?, gender = ?, nationality = ?
+      WHERE id = ?
+    `).run(name.trim(), age || null, gender || null, nationality || null, req.user.id);
+
+    const updated = db.prepare('SELECT id, email, name, age, gender, nationality FROM users WHERE id = ?').get(req.user.id);
+    res.json({ user: updated });
+  } catch (err) {
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+// PUT /api/auth/password — 비밀번호 변경
+router.put('/password', authenticateToken, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: '현재 비밀번호와 새 비밀번호를 입력해주세요.' });
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: '새 비밀번호는 최소 6자 이상이어야 합니다.' });
+  }
+  try {
+    const db = getDB();
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+    const valid = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!valid) {
+      return res.status(401).json({ error: '현재 비밀번호가 올바르지 않습니다.' });
+    }
+    const hash = await bcrypt.hash(newPassword, 12);
+    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, req.user.id);
+    res.json({ message: '비밀번호가 변경되었습니다.' });
+  } catch (err) {
     res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }
 });

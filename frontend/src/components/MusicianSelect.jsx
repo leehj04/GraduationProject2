@@ -2,13 +2,14 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Music, LogOut, RefreshCw, Heart, Sparkles, Bookmark,
-  Search, ChevronRight, Piano, Globe
+  Search, ChevronRight, Globe, User
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api';
 import FavoritesTab from './FavoritesTab';
 import TravelSearch from './TravelSearch';
 import RecommendTab from './RecommendTab';
+import MyPage from './MyPage';
 
 const MAIN_TABS = [
   { id: 'select',    label: '연주자 선택', icon: Music },
@@ -17,7 +18,6 @@ const MAIN_TABS = [
   { id: 'travel',    label: '여행 검색',   icon: Globe },
 ];
 
-// 악기별 이모지
 const INSTRUMENT_EMOJI = {
   '피아노': '🎹', '바이올린': '🎻', '첼로': '🎻', '비올라': '🎻',
   '플루트': '🎵', '지휘': '🎼', '소프라노': '🎤', '메조소프라노': '🎤',
@@ -43,6 +43,7 @@ export default function MusicianSelect() {
   const [favMusicians, setFavMusicians] = useState(new Set());
   const [searchQuery, setSearchQuery]   = useState('');
   const [filterInstrument, setFilterInstrument] = useState('전체');
+  const [showMyPage, setShowMyPage]     = useState(false);
   const { user, logout }                = useAuth();
   const navigate                        = useNavigate();
 
@@ -77,18 +78,15 @@ export default function MusicianSelect() {
     setTimeout(() => setScraping(false), 5000);
   };
 
-  // 악기 목록 추출 (중복 제거)
   const instruments = ['전체', ...new Set(
     musicians.map(m => m.instrument).filter(Boolean).sort()
   )];
 
-  // 검색 + 필터 적용
   const filtered = musicians.filter(m => {
     const matchSearch = !searchQuery ||
       m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (m.name_ko && m.name_ko.includes(searchQuery));
-    const matchFilter = filterInstrument === '전체' ||
-      m.instrument === filterInstrument;
+    const matchFilter = filterInstrument === '전체' || m.instrument === filterInstrument;
     return matchSearch && matchFilter;
   });
 
@@ -108,6 +106,7 @@ export default function MusicianSelect() {
       <div className="relative z-10 max-w-5xl mx-auto px-6 py-10">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
+          {/* 왼쪽 - 로고 */}
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="ClassicTour" className="w-10 h-10 object-contain" />
             <div>
@@ -115,16 +114,32 @@ export default function MusicianSelect() {
               <p className="text-white/40 text-xs">안녕하세요, {user?.name}님</p>
             </div>
           </div>
+
+          {/* 오른쪽 - 버튼들 */}
           <div className="flex items-center gap-2">
             {activeTab === 'select' && (
-              <button onClick={handleScrape} disabled={scraping}
-                className="btn-ghost flex items-center gap-2 text-sm">
+              <button
+                onClick={handleScrape}
+                disabled={scraping}
+                className="btn-ghost flex items-center gap-2 text-sm"
+              >
                 <RefreshCw className={`w-4 h-4 ${scraping ? 'animate-spin' : ''}`} />
                 {scraping ? '업데이트 중...' : '업데이트'}
               </button>
             )}
-            <button onClick={logout} className="btn-ghost flex items-center gap-2 text-sm">
-              <LogOut className="w-4 h-4" /> 로그아웃
+            <button
+              onClick={() => setShowMyPage(true)}
+              className="btn-ghost flex items-center gap-2 text-sm"
+            >
+              <User className="w-4 h-4" />
+              마이페이지
+            </button>
+            <button
+              onClick={logout}
+              className="btn-ghost flex items-center gap-2 text-sm"
+            >
+              <LogOut className="w-4 h-4" />
+              로그아웃
             </button>
           </div>
         </div>
@@ -134,12 +149,15 @@ export default function MusicianSelect() {
           {MAIN_TABS.map(tab => {
             const Icon = tab.icon;
             return (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl
                             text-sm font-medium transition-all duration-200
                             ${activeTab === tab.id
                               ? 'bg-[#f5c842] text-[#0a0e1a] shadow-lg'
-                              : 'text-white/50 hover:text-white'}`}>
+                              : 'text-white/50 hover:text-white'}`}
+              >
                 <Icon className="w-4 h-4" />
                 {tab.label}
               </button>
@@ -168,24 +186,25 @@ export default function MusicianSelect() {
           <FavoritesTab onSelectMusician={id => navigate(`/map/${id}`)} />
         )}
       </div>
+
+      {/* 마이페이지 모달 */}
+      {showMyPage && <MyPage onClose={() => setShowMyPage(false)} />}
     </div>
   );
 }
 
-/* ── 연주자 선택 탭 (리스트 형식) ─────────────── */
+/* ── 연주자 선택 탭 ────────────────────────────── */
 function SelectTab({
   musicians, allMusicians, instruments, filterInstrument, setFilterInstrument,
   searchQuery, setSearchQuery, favMusicians, onToggleFav, onSelect
 }) {
   return (
     <>
-      {/* 헤더 */}
       <div className="mb-6">
         <h2 className="font-serif text-3xl font-bold text-white mb-1">연주자를 선택하세요</h2>
         <p className="text-white/40 text-sm">총 {allMusicians.length}명 · 앞으로 6개월 공연 일정을 지도로 확인</p>
       </div>
 
-      {/* 검색 */}
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
         <input
@@ -197,7 +216,6 @@ function SelectTab({
         />
       </div>
 
-      {/* 악기 필터 */}
       <div className="flex flex-wrap gap-2 mb-5">
         {instruments.map(inst => (
           <button
@@ -213,10 +231,8 @@ function SelectTab({
         ))}
       </div>
 
-      {/* 결과 수 */}
       <p className="text-white/30 text-xs mb-3">{musicians.length}명 표시 중</p>
 
-      {/* 리스트 */}
       {musicians.length === 0 ? (
         <div className="text-center py-20">
           <Music className="w-12 h-12 text-white/20 mx-auto mb-3" />
@@ -250,13 +266,11 @@ function MusicianRow({ musician, isFav, onToggleFav, onClick }) {
                  rounded-xl px-4 py-3.5 cursor-pointer
                  transition-all duration-200 fade-in"
     >
-      {/* 악기 이모지 아이콘 */}
       <div className="w-10 h-10 rounded-full bg-[#f5c842]/10 border border-[#f5c842]/20
                       flex items-center justify-center flex-shrink-0 text-lg">
         {emoji}
       </div>
 
-      {/* 이름 + 정보 */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-white font-semibold text-sm group-hover:text-[#f5c842] transition-colors">
@@ -281,7 +295,6 @@ function MusicianRow({ musician, isFav, onToggleFav, onClick }) {
         </div>
       </div>
 
-      {/* 하트 + 화살표 */}
       <div className="flex items-center gap-2 flex-shrink-0">
         <button
           onClick={onToggleFav}
