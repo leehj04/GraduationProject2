@@ -200,7 +200,7 @@ function MyReviews({ reviews, onDelete }) {
           <div className="flex items-center justify-between">
             <p className="text-white/25 text-xs">{formatDateTime(review.created_at)}</p>
             <button
-              onClick={() => onDelete(review.)}
+              onClick={() => onDelete(review)}
               className="text-red-400/60 hover:text-red-400 text-xs transition-colors"
             >
               삭제
