@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Calendar, Globe, ChevronRight, Ticket } from 'lucide-react';
+import { Search, MapPin, Calendar, Globe, Ticket } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 
-// 나라 국기 이모지 매핑
 const COUNTRY_FLAG = {
   'United States': '🇺🇸', 'United Kingdom': '🇬🇧', 'Great Britain': '🇬🇧',
   'Germany': '🇩🇪', 'France': '🇫🇷', 'Austria': '🇦🇹', 'Netherlands': '🇳🇱',
@@ -11,7 +10,7 @@ const COUNTRY_FLAG = {
   'Australia': '🇦🇺', 'Canada': '🇨🇦', 'Japan': '🇯🇵', 'South Korea': '🇰🇷',
   'Sweden': '🇸🇪', 'Norway': '🇳🇴', 'Denmark': '🇩🇰', 'Finland': '🇫🇮',
   'Czech Republic': '🇨🇿', 'Poland': '🇵🇱', 'Ireland': '🇮🇪',
-  'New Zealand': '🇳🇿', 'Mexico': '🇲🇽',
+  'New Zealand': '🇳🇿', 'Mexico': '🇲🇽', '대한민국': '🇰🇷',
 };
 
 const INSTRUMENT_EMOJI = {
@@ -35,14 +34,12 @@ export default function TravelSearch() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
-  // 나라 목록 로드
   useEffect(() => {
     api.get('/api/travel/countries')
       .then(r => setCountries(['전체', ...r.data]))
       .catch(() => {});
   }, []);
 
-  // 오늘 날짜 기본값
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
     const next = new Date();
@@ -73,10 +70,10 @@ export default function TravelSearch() {
     }
   };
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
+  const handleConcertClick = (concert) => {
+    navigate(`/map/${concert.musician_id}`, {
+      state: { selectedConcertId: concert.id }
+    });
   };
 
   return (
@@ -129,8 +126,8 @@ export default function TravelSearch() {
               value={form.country}
               onChange={e => setForm(f => ({ ...f, country: e.target.value }))}
               className="w-full bg-[#1a1f35] border border-white/15 rounded-xl px-3 py-2.5
-                        text-white text-sm focus:outline-none focus:border-[#f5c842]/50
-                        appearance-none cursor-pointer"
+                         text-white text-sm focus:outline-none focus:border-[#f5c842]/50
+                         appearance-none cursor-pointer"
             >
               {countries.map(c => (
                 <option key={c} value={c} className="bg-[#1a1f35] text-white">
@@ -178,8 +175,7 @@ export default function TravelSearch() {
                 <ConcertRow
                   key={concert.id}
                   concert={concert}
-                  onClickMusician={() => navigate(`/map/${concert.musician_id}`)}
-                  formatDate={formatDate}
+                  onClick={() => handleConcertClick(concert)}
                 />
               ))}
             </div>
@@ -190,13 +186,17 @@ export default function TravelSearch() {
   );
 }
 
-function ConcertRow({ concert, onClickMusician, formatDate }) {
+function ConcertRow({ concert, onClick }) {
   const emoji = INSTRUMENT_EMOJI[concert.musician_instrument] || '🎵';
   const flag = COUNTRY_FLAG[concert.venue_country] || '🌍';
 
   return (
-    <div className="bg-white/5 border border-white/8 hover:border-[#f5c842]/30
-                    rounded-xl px-4 py-3.5 transition-all duration-200">
+    <div
+      onClick={onClick}
+      className="bg-white/5 border border-white/8 hover:border-[#f5c842]/30
+                 hover:bg-white/10 rounded-xl px-4 py-3.5 transition-all duration-200
+                 cursor-pointer"
+    >
       <div className="flex items-start gap-3">
         {/* 날짜 */}
         <div className="flex-shrink-0 w-14 text-center">
@@ -211,18 +211,15 @@ function ConcertRow({ concert, onClickMusician, formatDate }) {
         {/* 내용 */}
         <div className="flex-1 min-w-0">
           {/* 음악가 */}
-          <button
-            onClick={onClickMusician}
-            className="flex items-center gap-1.5 mb-1 hover:text-[#f5c842] transition-colors group"
-          >
+          <div className="flex items-center gap-1.5 mb-1">
             <span className="text-sm">{emoji}</span>
-            <span className="text-white font-semibold text-sm group-hover:text-[#f5c842]">
+            <span className="text-white font-semibold text-sm">
               {concert.musician_name_ko || concert.musician_name}
             </span>
             {concert.musician_name_ko && (
               <span className="text-white/30 text-xs">{concert.musician_name}</span>
             )}
-          </button>
+          </div>
 
           {/* 베뉴 */}
           <p className="text-white/50 text-xs flex items-center gap-1 truncate">

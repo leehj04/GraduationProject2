@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { GoogleMap, useLoadScript } from '@react-google-maps/api';
 import { ArrowLeft } from 'lucide-react';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
@@ -28,6 +28,8 @@ const MAP_STYLES = [
 
 export default function MapPage() {
   const { musicianId } = useParams();
+  const location = useLocation();
+  const autoSelectConcertId = location.state?.selectedConcertId;
   const navigate = useNavigate();
 
   const [musician, setMusician]             = useState(null);
@@ -203,6 +205,13 @@ export default function MapPage() {
       }
     }
   }, [selectedConcert, mapReady, updateMarkerStyles]);
+
+  useEffect(() => {
+  if (autoSelectConcertId && concerts.length > 0 && !selectedConcert) {
+    const target = concerts.find(c => c.id === autoSelectConcertId);
+    if (target) setSelectedConcert(target);
+  }
+}, [autoSelectConcertId, concerts]);
 
   // ── 공연 클릭 핸들러 ─────────────────────────────
   const handleConcertClick = useCallback((concert) => {
