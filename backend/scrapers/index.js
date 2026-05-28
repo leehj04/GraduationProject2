@@ -53,11 +53,18 @@ async function saveConcerts(musicianId, concerts) {
 
     // Check if this concert already exists (same musician, venue, date)
     const existing = db.prepare(`
-      SELECT id FROM concerts
-      WHERE musician_id = ? AND venue_name = ? AND concert_date = ?
-    `).get(musicianId, concert.venue_name, concert.concert_date);
+      SELECT id, concert_time FROM concerts
+      WHERE musician_id = ? AND concert_date = ?
+        AND (venue_name = ? OR venue_city = ?)
+    `).get(musicianId, concert.concert_date, concert.venue_name, concert.venue_city);
 
-    if (!existing) {
+    if (existing) {
+      // 기존에 시간 없고 새 데이터에 시간 있으면 업데이트
+      if (!existing.concert_time && concert.concert_time) {
+        db.prepare(`UPDATE concerts SET concert_time = ? WHERE id = ?`)
+          .run(concert.concert_time, existing.id);
+      }
+    } else {
       upsert.run({
         musician_id: musicianId,
         title: concert.title || null,
