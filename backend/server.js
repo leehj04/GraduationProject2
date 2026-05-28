@@ -22,7 +22,7 @@ const PORT = process.env.PORT || 3001;
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || origin.includes('leehj-s-projects.vercel.app') || origin.includes('localhost')) {
+    if (!origin || origin.includes('vercel.app') || origin.includes('localhost')) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
