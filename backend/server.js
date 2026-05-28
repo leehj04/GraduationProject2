@@ -21,10 +21,13 @@ const app  = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL || 'http://localhost:5173',
-    'https://classictourgraduationproject-2ok9elzrl-leehj-s-projects.vercel.app'
-  ],
+  origin: (origin, callback) => {
+    if (!origin || origin.includes('leehj-s-projects.vercel.app') || origin.includes('localhost')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
