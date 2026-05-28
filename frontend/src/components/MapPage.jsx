@@ -30,6 +30,7 @@ export default function MapPage() {
   const { musicianId } = useParams();
   const location = useLocation();
   const autoSelectConcertId = location.state?.selectedConcertId;
+  const openCompanion = location.state?.openCompanion;
   const navigate = useNavigate();
 
   const [musician, setMusician]             = useState(null);
@@ -207,11 +208,11 @@ export default function MapPage() {
   }, [selectedConcert, mapReady, updateMarkerStyles]);
 
   useEffect(() => {
-  if (autoSelectConcertId && concerts.length > 0 && !selectedConcert) {
-    const target = concerts.find(c => c.id === autoSelectConcertId);
-    if (target) setSelectedConcert(target);
-  }
-}, [autoSelectConcertId, concerts]);
+    if (autoSelectConcertId && concerts.length > 0 && !selectedConcert) {
+      const target = concerts.find(c => c.id === autoSelectConcertId);
+      if (target) setSelectedConcert(target);
+    }
+  }, [autoSelectConcertId, concerts]);
 
   // ── 공연 클릭 핸들러 ─────────────────────────────
   const handleConcertClick = useCallback((concert) => {
@@ -302,6 +303,7 @@ export default function MapPage() {
           concert={selectedConcert}
           musician={musician}
           onClose={handleClose}
+          defaultTab={openCompanion ? 'companion' : 'info'}
         />
       ) : (
         <ScheduleSidebar

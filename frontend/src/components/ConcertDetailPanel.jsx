@@ -23,8 +23,8 @@ const NEARBY_TABS = [
   { id: 'attraction', label: '명소',  icon: Landmark,        type: 'attraction' },
 ];
 
-export default function ConcertDetailPanel({ concert, musician, onClose }) {
-  const [activeTab, setActiveTab] = useState('info');
+export default function ConcertDetailPanel({ concert, musician, onClose, defaultTab = 'info' }) {
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [isFav, setIsFav] = useState(false);
 
   useEffect(() => {
