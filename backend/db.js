@@ -129,10 +129,25 @@ function initDB() {
   `);
 
   seedMusicians();
+  seedUsers(); 
   seedMockConcerts();
 
   console.log('[DB] Database initialized successfully');
   return db;
+}
+
+function seedUsers() {
+  const bcrypt = require('bcryptjs');
+  const existing = db.prepare('SELECT COUNT(*) as c FROM users').get();
+  if (existing.c > 0) return;
+
+  const hash = bcrypt.hashSync('classictour1234', 10);
+  db.prepare(`
+    INSERT OR IGNORE INTO users (email, password_hash, name, age, gender, nationality)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run('test@classictour.com', hash, '테스트유저', 25, '여성', '대한민국');
+
+  console.log('[DB] 시연용 계정 생성 완료');
 }
 
 function seedMusicians() {
