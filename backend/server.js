@@ -19,7 +19,7 @@ const { sendNotificationEmail } = require('./utils/email');
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
-
+/*
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || origin.includes('vercel.app') || origin.includes('localhost')) {
@@ -30,6 +30,8 @@ app.use(cors({
   },
   credentials: true
 }));
+*/
+app.use(cors());
 app.use(express.json());
 
 initDB();
