@@ -84,28 +84,6 @@ router.get('/months/:musicianId', (req, res) => {
   }
 });
 
-// GET /api/concerts/:id - Single concert detail
-router.get('/:id', (req, res) => {
-  try {
-    const db = getDB();
-    const concert = db.prepare(`
-      SELECT c.*, m.name as musician_name, m.name_ko as musician_name_ko,
-             m.photo_url as musician_photo, m.bio as musician_bio
-      FROM concerts c
-      JOIN musicians m ON c.musician_id = m.id
-      WHERE c.id = ?
-    `).get(req.params.id);
-
-    if (!concert) return res.status(404).json({ error: '공연을 찾을 수 없습니다.' });
-
-    concert.program = concert.program ? JSON.parse(concert.program) : [];
-    res.json(concert);
-  } catch (err) {
-    console.error('Get concert error:', err);
-    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-  }
-});
-
 // GET /api/concerts/nearby-user?lat=37.5&lng=126.9&musicianId=1
 // 사용자 위치 기준 50km 이내 공연 필터
 router.get('/nearby-user', (req, res) => {
@@ -156,6 +134,28 @@ router.get('/nearby-user', (req, res) => {
 
     res.json(filtered.map(c => ({ ...c, program: c.program ? JSON.parse(c.program) : [] })));
   } catch (err) {
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+// GET /api/concerts/:id - Single concert detail
+router.get('/:id', (req, res) => {
+  try {
+    const db = getDB();
+    const concert = db.prepare(`
+      SELECT c.*, m.name as musician_name, m.name_ko as musician_name_ko,
+             m.photo_url as musician_photo, m.bio as musician_bio
+      FROM concerts c
+      JOIN musicians m ON c.musician_id = m.id
+      WHERE c.id = ?
+    `).get(req.params.id);
+
+    if (!concert) return res.status(404).json({ error: '공연을 찾을 수 없습니다.' });
+
+    concert.program = concert.program ? JSON.parse(concert.program) : [];
+    res.json(concert);
+  } catch (err) {
+    console.error('Get concert error:', err);
     res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }
 });
