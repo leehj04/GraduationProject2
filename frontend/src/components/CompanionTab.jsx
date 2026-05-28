@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { PenSquare, X, Loader2, User, ChevronLeft, Send } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { PenSquare, X, Loader2, User, ChevronLeft, Send, MessageSquare, Trash2 } from 'lucide-react';
 import api from '../api';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -25,6 +25,12 @@ export default function CompanionTab({ concertId }) {
     setView('list');
   };
 
+  const handleDeletePost = async (postId) => {
+    await api.delete(`/api/companions/${postId}`);
+    setPosts(prev => prev.filter(p => p.id !== postId));
+    setView('list');
+  };
+
   return (
     <div className="flex-1 overflow-hidden flex flex-col relative">
       {/* Sub header */}
@@ -47,6 +53,7 @@ export default function CompanionTab({ concertId }) {
           <PostList
             posts={posts}
             loading={loading}
+            currentUser={user}
             onSelectPost={(post) => { setSelectedPost(post); setView('detail'); }}
           />
         )}
@@ -54,7 +61,11 @@ export default function CompanionTab({ concertId }) {
           <WritePost concertId={concertId} onCreated={handlePostCreated} onCancel={() => setView('list')} />
         )}
         {view === 'detail' && selectedPost && (
-          <PostDetail post={selectedPost} />
+          <PostDetail
+            post={selectedPost}
+            currentUser={user}
+            onDelete={handleDeletePost}
+          />
         )}
       </div>
 
@@ -74,7 +85,8 @@ export default function CompanionTab({ concertId }) {
   );
 }
 
-function PostList({ posts, loading, onSelectPost }) {
+/* ── 글 목록 ─────────────────────────────────── */
+function PostList({ posts, loading, currentUser, onSelectPost }) {
   if (loading) return (
     <div className="flex items-center justify-center py-16">
       <Loader2 className="w-8 h-8 text-[#f5c842] animate-spin" />
@@ -117,50 +129,190 @@ function PostList({ posts, loading, onSelectPost }) {
   );
 }
 
-function PostDetail({ post }) {
-  return (
-    <div className="px-5 py-5">
-      <h3 className="font-serif text-lg font-bold text-white mb-4 leading-tight">{post.title}</h3>
+/* ── 글 상세 + 댓글 ───────────────────────────── */
+function PostDetail({ post, currentUser, onDelete }) {
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [content, setContent] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const bottomRef = useRef(null);
 
-      {/* Author info card */}
-      <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-5">
-        <p className="text-white/40 text-[10px] uppercase tracking-widest mb-3">작성자 정보</p>
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-[#f5c842]/10 border border-[#f5c842]/20
-                          flex items-center justify-center flex-shrink-0">
-            <User className="w-6 h-6 text-[#f5c842]" />
+  useEffect(() => {
+    api.get(`/api/companions/${post.id}/comments`)
+      .then(r => setComments(r.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [post.id]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!content.trim()) return;
+    setSubmitting(true);
+    try {
+      const { data } = await api.post(`/api/companions/${post.id}/comments`, { content });
+      setComments(prev => [...prev, data]);
+      setContent('');
+      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    await api.delete(`/api/companions/comments/${commentId}`);
+    setComments(prev => prev.filter(c => c.id !== commentId));
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-5 py-5">
+          {/* 글 제목 */}
+          <div className="flex items-start justify-between gap-2 mb-4">
+            <h3 className="font-serif text-lg font-bold text-white leading-tight">{post.title}</h3>
+            {/* 내 글이면 삭제 버튼 */}
+            {currentUser?.id === post.user_id && (
+              <button
+                onClick={() => onDelete(post.id)}
+                className="flex-shrink-0 text-red-400/60 hover:text-red-400 transition-colors"
+                title="글 삭제"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
           </div>
-          <div className="space-y-1">
-            <p className="text-white font-semibold text-sm">{post.author_name}</p>
-            <div className="flex items-center gap-2 flex-wrap">
-              {post.author_age && (
-                <span className="bg-white/10 text-white/60 text-xs px-2 py-0.5 rounded-full">
-                  {post.author_age}세
-                </span>
-              )}
-              {post.author_gender && (
-                <span className="bg-white/10 text-white/60 text-xs px-2 py-0.5 rounded-full">
-                  {post.author_gender}
-                </span>
-              )}
-              {post.author_nationality && (
-                <span className="bg-white/10 text-white/60 text-xs px-2 py-0.5 rounded-full">
-                  {post.author_nationality}
-                </span>
-              )}
+
+          {/* 작성자 정보 */}
+          <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-4">
+            <p className="text-white/40 text-[10px] uppercase tracking-widest mb-3">작성자 정보</p>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-[#f5c842]/10 border border-[#f5c842]/20
+                              flex items-center justify-center flex-shrink-0">
+                <User className="w-6 h-6 text-[#f5c842]" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-white font-semibold text-sm">{post.author_name}</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {post.author_age && (
+                    <span className="bg-white/10 text-white/60 text-xs px-2 py-0.5 rounded-full">
+                      {post.author_age}세
+                    </span>
+                  )}
+                  {post.author_gender && (
+                    <span className="bg-white/10 text-white/60 text-xs px-2 py-0.5 rounded-full">
+                      {post.author_gender}
+                    </span>
+                  )}
+                  {post.author_nationality && (
+                    <span className="bg-white/10 text-white/60 text-xs px-2 py-0.5 rounded-full">
+                      {post.author_nationality}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
+          </div>
+
+          {/* 본문 */}
+          <p className="text-white/70 text-sm leading-relaxed whitespace-pre-wrap mb-2">{post.content}</p>
+          <p className="text-white/25 text-xs mb-6">{new Date(post.created_at).toLocaleString('ko-KR')}</p>
+
+          {/* 댓글 섹션 */}
+          <div className="border-t border-white/10 pt-5">
+            <div className="flex items-center gap-2 mb-4">
+              <MessageSquare className="w-4 h-4 text-white/40" />
+              <p className="text-white/40 text-sm font-medium">댓글 {comments.length}개</p>
+            </div>
+
+            {loading ? (
+              <div className="flex justify-center py-6">
+                <Loader2 className="w-6 h-6 text-[#f5c842] animate-spin" />
+              </div>
+            ) : comments.length === 0 ? (
+              <p className="text-white/25 text-xs text-center py-6">첫 댓글을 남겨보세요!</p>
+            ) : (
+              <div className="space-y-3 mb-4">
+                {comments.map(comment => (
+                  <div key={comment.id}
+                    className="bg-white/5 border border-white/8 rounded-xl p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-6 h-6 rounded-full bg-[#f5c842]/10 border border-[#f5c842]/20
+                                        flex items-center justify-center flex-shrink-0">
+                          <User className="w-3 h-3 text-[#f5c842]" />
+                        </div>
+                        <div>
+                          <span className="text-white/70 text-xs font-medium">{comment.author_name}</span>
+                          <div className="flex gap-1.5 mt-0.5">
+                            {comment.author_age && (
+                              <span className="text-white/30 text-[10px]">{comment.author_age}세</span>
+                            )}
+                            {comment.author_gender && (
+                              <span className="text-white/30 text-[10px]">{comment.author_gender}</span>
+                            )}
+                            {comment.author_nationality && (
+                              <span className="text-white/30 text-[10px]">{comment.author_nationality}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      {/* 내 댓글이면 삭제 */}
+                      {currentUser?.id === comment.user_id && (
+                        <button
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="text-red-400/40 hover:text-red-400 transition-colors flex-shrink-0"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-white/60 text-sm leading-relaxed">{comment.content}</p>
+                    <p className="text-white/20 text-xs mt-2">{formatTimeAgo(comment.created_at)}</p>
+                  </div>
+                ))}
+                <div ref={bottomRef} />
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <p className="text-white/70 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
-
-      <p className="text-white/25 text-xs mt-5">{new Date(post.created_at).toLocaleString('ko-KR')}</p>
+      {/* 댓글 입력창 — 하단 고정 */}
+      {currentUser && (
+        <div className="flex-shrink-0 border-t border-white/10 px-4 py-3 bg-[#0a0e1a]">
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <input
+              type="text"
+              value={content}
+              onChange={e => setContent(e.target.value)}
+              placeholder="댓글을 입력하세요..."
+              className="flex-1 bg-white/8 border border-white/15 rounded-xl px-3 py-2
+                         text-white text-sm placeholder-white/30
+                         focus:outline-none focus:border-[#f5c842]/50"
+              maxLength={500}
+            />
+            <button
+              type="submit"
+              disabled={!content.trim() || submitting}
+              className="w-10 h-10 rounded-xl bg-[#f5c842] hover:bg-[#e6b800]
+                         flex items-center justify-center transition-all
+                         disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+            >
+              {submitting
+                ? <Loader2 className="w-4 h-4 text-[#0a0e1a] animate-spin" />
+                : <Send className="w-4 h-4 text-[#0a0e1a]" />
+              }
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
 
+/* ── 글쓰기 ──────────────────────────────────── */
 function WritePost({ concertId, onCreated, onCancel }) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -210,7 +362,7 @@ function WritePost({ concertId, onCreated, onCancel }) {
         <textarea
           className="input-field text-sm resize-none"
           rows={7}
-          placeholder="동행을 구하는 글을 작성하세요. 원하는 동행 조건, 연락 방법 등을 적어주세요."
+          placeholder={`동행을 구하는 글을 작성하세요.\n\n예시)\n- 원하는 동행 조건 (나이, 성별 등)\n- 연락 방법 (이메일, 오픈카톡 링크 등)\n- 좌석 위치나 기타 조건`}
           value={content}
           onChange={e => setContent(e.target.value)}
           required

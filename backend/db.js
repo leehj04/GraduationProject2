@@ -122,6 +122,17 @@ function initDB() {
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
 
+    CREATE TABLE IF NOT EXISTS companion_comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      companion_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      content TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (companion_id) REFERENCES companions(id),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+    
+    CREATE INDEX IF NOT EXISTS idx_companion_comments ON companion_comments(companion_id);
     CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
     CREATE INDEX IF NOT EXISTS idx_notifications_date ON notifications(notify_date, sent);
     CREATE INDEX IF NOT EXISTS idx_reviews_concert ON reviews(concert_id);

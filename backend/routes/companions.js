@@ -104,4 +104,68 @@ router.delete('/:id', authenticateToken, (req, res) => {
   }
 });
 
+// GET /api/companions/:postId/comments — 댓글 조회
+router.get('/:postId/comments', (req, res) => {
+  try {
+    const db = getDB();
+    const comments = db.prepare(`
+      SELECT cc.*, u.name as author_name, u.age as author_age,
+             u.gender as author_gender, u.nationality as author_nationality
+      FROM companion_comments cc
+      JOIN users u ON cc.user_id = u.id
+      WHERE cc.companion_id = ?
+      ORDER BY cc.created_at ASC
+    `).all(req.params.postId);
+    res.json(comments);
+  } catch (err) {
+    res.status(500).json({ error: '서버 오류' });
+  }
+});
+
+// POST /api/companions/:postId/comments — 댓글 작성
+router.post('/:postId/comments', authenticateToken, (req, res) => {
+  try {
+    const db = getDB();
+    const { content } = req.body;
+    if (!content?.trim()) {
+      return res.status(400).json({ error: '내용을 입력해주세요.' });
+    }
+    const post = db.prepare('SELECT id FROM companions WHERE id = ?').get(req.params.postId);
+    if (!post) return res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
+
+    const result = db.prepare(`
+      INSERT INTO companion_comments (companion_id, user_id, content)
+      VALUES (?, ?, ?)
+    `).run(req.params.postId, req.user.id, content.trim());
+
+    const comment = db.prepare(`
+      SELECT cc.*, u.name as author_name, u.age as author_age,
+             u.gender as author_gender, u.nationality as author_nationality
+      FROM companion_comments cc
+      JOIN users u ON cc.user_id = u.id
+      WHERE cc.id = ?
+    `).get(result.lastInsertRowid);
+
+    res.status(201).json(comment);
+  } catch (err) {
+    res.status(500).json({ error: '서버 오류' });
+  }
+});
+
+// DELETE /api/companions/comments/:id — 댓글 삭제
+router.delete('/comments/:id', authenticateToken, (req, res) => {
+  try {
+    const db = getDB();
+    const comment = db.prepare('SELECT * FROM companion_comments WHERE id = ?').get(req.params.id);
+    if (!comment) return res.status(404).json({ error: '댓글을 찾을 수 없습니다.' });
+    if (comment.user_id !== req.user.id) {
+      return res.status(403).json({ error: '본인 댓글만 삭제할 수 있습니다.' });
+    }
+    db.prepare('DELETE FROM companion_comments WHERE id = ?').run(req.params.id);
+    res.json({ message: '삭제되었습니다.' });
+  } catch (err) {
+    res.status(500).json({ error: '서버 오류' });
+  }
+});
+
 module.exports = router;
