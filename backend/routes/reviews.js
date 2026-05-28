@@ -4,6 +4,25 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
+// GET /api/reviews/my — 내가 쓴 후기 목록
+router.get('/my', authenticateToken, (req, res) => {
+  try {
+    const db = getDB();
+    const reviews = db.prepare(`
+      SELECT r.*, c.venue_name, c.concert_date, c.concert_time,
+             m.name as musician_name, m.name_ko as musician_name_ko
+      FROM reviews r
+      JOIN concerts c ON r.concert_id = c.id
+      JOIN musicians m ON c.musician_id = m.id
+      WHERE r.user_id = ?
+      ORDER BY r.created_at DESC
+    `).all(req.user.id);
+    res.json(reviews);
+  } catch (err) {
+    res.status(500).json({ error: '서버 오류' });
+  }
+});
+
 // GET /api/reviews/:concertId  — 공연 후기 목록
 router.get('/:concertId', (req, res) => {
   try {

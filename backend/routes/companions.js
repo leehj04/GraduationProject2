@@ -4,6 +4,25 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
+// GET /api/companions/my — 내가 쓴 동행 글 목록
+router.get('/my', authenticateToken, (req, res) => {
+  try {
+    const db = getDB();
+    const posts = db.prepare(`
+      SELECT cp.*, c.venue_name, c.concert_date,
+             m.name as musician_name, m.name_ko as musician_name_ko
+      FROM companions cp
+      JOIN concerts c ON cp.concert_id = c.id
+      JOIN musicians m ON c.musician_id = m.id
+      WHERE cp.user_id = ?
+      ORDER BY cp.created_at DESC
+    `).all(req.user.id);
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ error: '서버 오류' });
+  }
+});
+
 // GET /api/companions/:concertId
 router.get('/:concertId', (req, res) => {
   try {
